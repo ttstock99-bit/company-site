@@ -1,57 +1,35 @@
 export default function Home() {
   return (
-    <main style={{
-      fontFamily: 'Arial',
-      padding: '40px',
-      lineHeight: '1.7'
-    }}>
-      <h1 style={{
-        fontSize: '48px',
-        marginBottom: '20px'
-      }}>
-        VISION INSIGHT
-      </h1>
+    <div className="bg-gray-900 text-white min-h-screen">
+      {/* 헤더 */}
+      <nav className="flex justify-between p-6 border-b border-gray-700">
+        <h1 className="text-2xl font-bold">튼튼주식</h1>
+        <div className="space-x-4">
+          <a href="#">홈</a>
+          <a href="#">리포트</a>
+          <a href="#">유튜브</a>
+        </div>
+      </nav>
 
-      <p style={{
-        fontSize: '20px',
-        color: '#555',
-        marginBottom: '60px'
-      }}>
-        기업의 성장을 위한 데이터 & AI 파트너
-      </p>
+      {/* 메인 히어로 섹션 */}
+      <header className="py-20 text-center">
+        <h2 className="text-5xl font-bold mb-4">흔들리지 않는 투자, <br/>튼튼주식과 함께하세요</h2>
+        <p className="text-gray-400 mb-8">유튜브 채널 '튼튼주식'의 핵심 인사이트와 분석 리포트를 확인하세요.</p>
+        <button className="bg-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
+          유튜브 채널 바로가기
+        </button>
+      </header>
 
-      <section style={{ marginBottom: '60px' }}>
-        <h2>회사 소개</h2>
-        <p>
-          데이터 분석 및 AI 솔루션을 제공하는 기업형 홈페이지 예제입니다.
-        </p>
+      {/* 리스트 섹션 */}
+      <section className="grid grid-cols-4 gap-6 p-10">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-gray-800 p-4 rounded-xl">
+            <div className="h-40 bg-gray-700 mb-4 rounded-lg"></div>
+            <h3 className="font-bold">최신 영상 제목 {i}</h3>
+            <p className="text-sm text-gray-400">2026.05.14</p>
+          </div>
+        ))}
       </section>
-
-      <section style={{ marginBottom: '60px' }}>
-        <h2>서비스</h2>
-
-        <ul>
-          <li>데이터 분석</li>
-          <li>AI 자동화</li>
-          <li>디지털 컨설팅</li>
-        </ul>
-      </section>
-
-      <section style={{ marginBottom: '60px' }}>
-        <h2>공지사항</h2>
-
-        <ul>
-          <li>홈페이지 오픈 안내</li>
-          <li>신규 서비스 출시 예정</li>
-          <li>고객 문의 응답 시간 안내</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>문의하기</h2>
-
-        <p>Email: contact@company.com</p>
-      </section>
-    </main>
+    </div>
   );
 }
