@@ -1,13 +1,5 @@
 export default function Home() {
   return (
-<<<<<<< Updated upstream
-    <main style={{ padding: '40px' }}>
-      <h1>VISION INSIGHT</h1>
-      <p>기업 홈페이지입니다.</p>
-    </main>
-  );
-}
-=======
     <main style={{
       fontFamily: 'Arial',
       padding: '40px',
@@ -63,4 +55,3 @@ export default function Home() {
     </main>
   );
 }
->>>>>>> Stashed changes
