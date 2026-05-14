@@ -1,9 +1,14 @@
-import './globals.css'; // <--- 이 줄을 맨 위에 추가하세요!
+import './globals.css';
 
 export const metadata = {
-  title: "VISION INSIGHT",
-  description: "기업 홈페이지",
+  title: "튼튼주식",
+  description: "흔들리지 않는 투자, 튼튼주식",
 };
 
 export default function RootLayout({ children }) {
-  // ... 나머지 코드
+  return (
+    <html lang="ko">
+      <body>{children}</body>
+    </html>
+  );
+}
