@@ -21,15 +21,14 @@ export default function Home() {
       </header>
 
       {/* 리스트 섹션 */}
-      <section className="grid grid-cols-4 gap-6 p-10">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-gray-800 p-4 rounded-xl">
-            <div className="h-40 bg-gray-700 mb-4 rounded-lg"></div>
-            <h3 className="font-bold">최신 영상 제목 {i}</h3>
-            <p className="text-sm text-gray-400">2026.05.14</p>
-          </div>
-        ))}
-      </section>
+      <section className="card-grid">
+  {[1, 2, 3, 4].map((i) => (
+    <div key={i} className="card">
+      <h3 className="font-bold">최신 영상 제목 {i}</h3>
+      <p className="text-gray-400">2026.05.14</p>
+    </div>
+  ))}
+</section>
     </div>
   );
 }
