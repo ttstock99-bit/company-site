@@ -1,3 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+body {
+  background-color: #111827; /* 어두운 배경색 */
+  color: white;             /* 글자 흰색 */
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+.hero { text-align: center; padding: 40px; }
+.card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.card { background-color: #1f2937; padding: 15px; border-radius: 10px; }
