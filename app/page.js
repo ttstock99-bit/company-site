@@ -1,34 +1,26 @@
 export default function Home() {
   return (
-    <div className="bg-gray-900 text-white min-h-screen">
-      {/* 헤더 */}
-      <nav className="flex justify-between p-6 border-b border-gray-700">
-        <h1 className="text-2xl font-bold">튼튼주식</h1>
-        <div className="space-x-4">
-          <a href="#">홈</a>
-          <a href="#">리포트</a>
-          <a href="#">유튜브</a>
-        </div>
-      </nav>
-
-      {/* 메인 히어로 섹션 */}
-      <header className="py-20 text-center">
-        <h2 className="text-5xl font-bold mb-4">흔들리지 않는 투자, <br/>튼튼주식과 함께하세요</h2>
-        <p className="text-gray-400 mb-8">유튜브 채널 '튼튼주식'의 핵심 인사이트와 분석 리포트를 확인하세요.</p>
-        <button className="bg-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
-          유튜브 채널 바로가기
-        </button>
+    <main>
+      <header className="header">
+        <h1 className="text-4xl font-bold mb-4">튼튼주식 분석 리포트</h1>
+        <p className="text-gray-400">데이터 기반의 깊이 있는 금융 인사이트</p>
       </header>
-
-      {/* 리스트 섹션 */}
+      
       <section className="card-grid">
-  {[1, 2, 3, 4].map((i) => (
-    <div key={i} className="card">
-      <h3 className="font-bold">최신 영상 제목 {i}</h3>
-      <p className="text-gray-400">2026.05.14</p>
-    </div>
-  ))}
-</section>
-    </div>
+        {[
+          { title: "L&F 주가 전망", date: "2026.05.14", desc: "이차전지 소재 시장 분석" },
+          { title: "KG 그룹 이슈", date: "2026.05.14", desc: "기업 지배구조 및 사업 다각화" },
+          { title: "미국 경제 지표", date: "2026.05.14", desc: "금리 인하와 시장의 방향성" },
+          { title: "반도체 HBM 현황", date: "2026.05.14", desc: "장비주 투자 전략" },
+        ].map((item, i) => (
+          <div key={i} className="card">
+            <span className="tag">INVESTMENT</span>
+            <h3 className="text-xl font-bold mt-2 mb-2">{item.title}</h3>
+            <p className="text-gray-500 text-sm mb-4">{item.desc}</p>
+            <p className="text-xs text-gray-400">{item.date}</p>
+          </div>
+        ))}
+      </section>
+    </main>
   );
 }
