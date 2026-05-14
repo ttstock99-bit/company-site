@@ -1,14 +1,22 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useMarketData } from './hooks/useMarketData';
 import { 
   TrendingUp, 
+  TrendingDown,
   Youtube, 
   BarChart3, 
   LineChart, 
   PlayCircle,
   Bell,
   ArrowRight,
-  Activity
+  Activity,
+  CheckCircle2,
+  MessageSquareQuote,
+  Clock,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -20,151 +28,159 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 
-// Mock data for the stock chart
-const initialData = [
-  { time: '10:00', price: 150.2 },
-  { time: '11:00', price: 151.5 },
-  { time: '12:00', price: 149.8 },
-  { time: '13:00', price: 153.2 },
-  { time: '14:00', price: 152.0 },
-  { time: '15:00', price: 155.6 },
-  { time: '16:00', price: 158.4 },
-  { time: '17:00', price: 162.1 },
-  { time: '18:00', price: 161.8 },
-  { time: '19:00', price: 165.5 },
-  { time: '20:00', price: 164.2 },
-  { time: '21:00', price: 168.9 },
-  { time: '22:00', price: 172.5 },
-];
+// --- [Mock Data] ---
+const generateChartData = (points: number, trend: 'up' | 'down', volatility: number) => {
+  let currentPrice = 2500;
+  return Array.from({ length: points }).map((_, i) => {
+    const change = (Math.random() - (trend === 'up' ? 0.4 : 0.6)) * volatility;
+    currentPrice = currentPrice + change;
+    return { 
+      time: `${9 + Math.floor(i / 6)}:${(i % 6) * 10 || '00'}`, 
+      price: Number(currentPrice.toFixed(2)) 
+    };
+  });
+};
 
 export default function App() {
-  const [chartData, setChartData] = useState(initialData);
+  const [timeframe, setTimeframe] = useState<'1D' | '1W' | '1M'>('1D');
+  const [chartData, setChartData] = useState(generateChartData(40, 'up', 15));
+  const marketIndices = useMarketData();
 
-  // Simulate live price updates
+  // 탭 변경 시 차트 데이터 갱신 시뮬레이션
   useEffect(() => {
-    const interval = setInterval(() => {
-      setChartData(prev => {
-        const lastPrice = prev[prev.length - 1].price;
-        const change = (Math.random() - 0.3) * 3; // Slight upward bias
-        const newPrice = Number((lastPrice + change).toFixed(1));
-        const newTime = `${(22 + Math.floor(prev.length / 2)) % 24}:00`;
-        
-        return [...prev.slice(1), { time: newTime, price: newPrice }];
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    if (timeframe === '1D') setChartData(generateChartData(40, 'up', 15));
+    if (timeframe === '1W') setChartData(generateChartData(30, 'up', 40));
+    if (timeframe === '1M') setChartData(generateChartData(20, 'up', 100));
+  }, [timeframe]);
+
 
   const ytLink = "https://www.youtube.com/@%ED%8A%BC%ED%8A%BC%EC%A3%BC%EC%8B%9D-i5u";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-emerald-500/30">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
-        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <TrendingUp className="text-slate-950" size={24} strokeWidth={2.5} />
+    <div className="min-h-screen bg-[#0a0f16] text-slate-100 font-sans selection:bg-red-500/30">
+      
+      {/* 1. 글로벌 네비게이션 (Header) */}
+      <header className="fixed top-0 w-full z-50 bg-[#0a0f16]/90 backdrop-blur-md border-b border-white/5">
+        <div className="container mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-black border border-white/10 shadow-lg shadow-black/50 flex items-center justify-center">
+              <img src="/logo.png" alt="튼튼주식 로고" className="w-full h-full object-cover" />
             </div>
             <span className="text-2xl font-bold tracking-tight">튼튼주식</span>
           </div>
-          <a shrink-0
+          <a 
             href={ytLink}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold transition-all hover:shadow-lg hover:shadow-red-500/30"
           >
             <Youtube size={20} />
-            <span className="hidden sm:inline">구독하기</span>
+            <span className="hidden sm:inline">유튜브 구독</span>
           </a>
+        </div>
+
+        {/* 2. 실시간 증시 전광판 (Ticker) */}
+        <div className="w-full bg-[#111824] border-b border-white/5 overflow-hidden flex items-center h-10 text-sm">
+          <div className="flex whitespace-nowrap animate-[marquee_25s_linear_infinite] hover:[animation-play-state:paused]">
+            {[...marketIndices, ...marketIndices].map((index, i) => (
+              <div key={i} className="flex items-center gap-2 mx-6">
+                <span className="text-slate-400 font-medium">{index.name}</span>
+                <span className="font-bold">
+                  {index.prefix || ''}
+                  {index.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {index.suffix || ''}
+                </span>
+                <span className={`text-xs font-bold flex items-center ${index.isUp ? 'text-red-500' : 'text-blue-500'}`}>
+                  {index.isUp ? '▲' : '▼'} {Math.abs(index.change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({Math.abs(index.percent).toFixed(2)}%)
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 md:pt-40 md:pb-32 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      {/* 3. Hero 섹션 (실시간 차트 & 메인 카피) */}
+      <section className="pt-36 pb-20 md:pt-48 md:pb-28 px-6 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+
+        <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             
-            {/* Text Content */}
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="flex flex-col items-start"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                실시간 주식 인사이트
-              </div>
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
-                흔들리지 않는<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                  튼튼한 투자
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
-                의 시작
+                장중 실시간 브리핑 진행중
+              </div>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.15] text-white">
+                흔들림 없는 투자의 기준,<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-400">
+                  튼튼주식
+                </span>
               </h1>
-              <p className="text-lg md:text-xl text-slate-400 mb-8 leading-relaxed max-w-lg">
-                시장 분석부터 종목 발굴까지. 튼튼주식과 함께라면 당신의 계좌도 우상향할 수 있습니다. 지금 유튜브 채널에서 확인하세요.
+              <p className="text-lg md:text-xl text-slate-400 mb-10 leading-relaxed max-w-lg font-light">
+                감에 의존하는 투자는 이제 그만. 정확한 데이터 분석과 실전 차트리딩으로 당신의 계좌를 튼튼하게 지켜드립니다.
               </p>
               
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 w-full sm:w-auto">
                 <a 
                   href={ytLink} 
                   target="_blank" 
                   rel="noreferrer"
-                  className="px-8 py-4 bg-white text-slate-950 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 text-lg"
+                  className="w-full sm:w-auto px-8 py-4 bg-white text-[#0a0f16] font-bold rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-lg shadow-xl shadow-white/10"
                 >
                   <PlayCircle size={24} />
-                  최신 영상 보기
+                  최신 분석 영상 보기
                 </a>
-                <a 
-                  href="#videos" 
-                  className="px-8 py-4 bg-slate-900 border border-slate-800 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-2 text-lg"
-                >
-                  채널 소개
-                </a>
-              </div>
-              
-              <div className="mt-10 flex items-center gap-6 text-sm text-slate-500 font-medium">
-                <div className="flex items-center gap-2">
-                  <Activity size={18} className="text-emerald-500" />
-                  <span>시황 분석</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <LineChart size={18} className="text-emerald-500" />
-                  <span>차트 분석</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Bell size={18} className="text-emerald-500" />
-                  <span>실시간 이슈</span>
-                </div>
               </div>
             </motion.div>
 
-            {/* Chart Area */}
+            {/* 인터랙티브 차트 컴포넌트 */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative w-full h-[400px] md:h-[500px]"
+              className="relative w-full h-[450px]"
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-cyan-500/5 rounded-3xl border border-slate-800/50 backdrop-blur-sm p-6 flex flex-col">
-                <div className="flex justify-between items-end mb-6">
+              <div className="absolute inset-0 bg-[#111824]/80 rounded-3xl border border-white/10 backdrop-blur-lg p-5 md:p-6 flex flex-col shadow-2xl">
+                <div className="flex flex-wrap gap-4 justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-slate-400 font-medium flex items-center gap-2">
-                      <BarChart3 size={18} />
-                      TTStock Portfolio Index
+                    <h3 className="text-slate-400 font-medium flex items-center gap-2 text-sm uppercase tracking-wider">
+                      <BarChart3 size={16} />
+                      TTStock Model Portfolio
                     </h3>
-                    <div className="text-4xl font-bold mt-2 text-white flex items-center gap-3">
-                      {chartData[chartData.length - 1].price.toFixed(2)}
-                      <span className="text-emerald-400 text-lg flex items-center bg-emerald-400/10 px-2 py-1 rounded-md">
-                        <TrendingUp size={16} className="mr-1"/>
-                        +{(chartData[chartData.length - 1].price - chartData[0].price).toFixed(2)}%
+                    <div className="text-3xl md:text-4xl font-bold mt-2 text-white flex items-end gap-3 tracking-tight">
+                      {chartData[chartData.length - 1].price.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                      <span className="text-red-500 text-lg flex items-center bg-red-500/10 px-2 py-0.5 rounded-md font-semibold mb-1">
+                        ▲ 2.45%
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs font-mono text-slate-500 bg-slate-900/80 px-2 py-1 rounded">
-                    LIVE
+                  
+                  {/* 타임프레임 스위치 */}
+                  <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
+                    {(['1D', '1W', '1M'] as const).map(tab => (
+                      <button
+                        key={tab}
+                        onClick={() => setTimeframe(tab)}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${
+                          timeframe === tab 
+                            ? 'bg-slate-800 text-white shadow-sm' 
+                            : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 
@@ -173,32 +189,35 @@ export default function App() {
                     <AreaChart data={chartData}>
                       <defs>
                         <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          {/* 한국 시장 상승 색상 (Red) 적용 */}
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" vertical={false} />
                       <XAxis 
                         dataKey="time" 
                         hide 
                       />
                       <YAxis 
-                        domain={['dataMin - 5', 'dataMax + 5']} 
+                        domain={['dataMin - 100', 'dataMax + 100']} 
                         hide 
                       />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '8px' }}
-                        itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                        contentStyle={{ backgroundColor: '#0a0f16', borderColor: '#ffffff1a', borderRadius: '8px', color: '#fff' }}
+                        itemStyle={{ color: '#ef4444', fontWeight: 'bold' }}
                         labelStyle={{ color: '#94a3b8' }}
+                        formatter={(value: number) => [`${value.toLocaleString()}`, 'Price']}
                       />
                       <Area 
                         type="monotone" 
                         dataKey="price" 
-                        stroke="#10b981" 
+                        stroke="#ef4444" 
                         strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorPrice)" 
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={1000}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -210,16 +229,56 @@ export default function App() {
         </div>
       </section>
 
-      {/* Videos Section */}
-      <section id="videos" className="py-24 bg-slate-900/50 border-t border-slate-800">
+      {/* 4. 주요 콘텐츠 소개 (Features) */}
+      <section className="py-24 bg-[#0d131c]">
         <div className="container mx-auto px-6 max-w-7xl">
-          <div className="flex justify-between items-end mb-12">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">채널 핵심 포인트</h2>
+            <p className="text-slate-400 text-lg">튼튼주식은 오직 팩트와 차트에 기반한 정보만 전달합니다.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Activity className="text-red-500" size={32} />,
+                title: "매일 아침 시황 브리핑",
+                desc: "미국 증시 마감 상황부터 국내 증시 개장 전 필수 체크 포인트까지 매일 아침 요약해 드립니다."
+              },
+              {
+                icon: <LineChart className="text-blue-500" size={32} />,
+                title: "가치/실전 차트 분석",
+                desc: "단순한 기법이 아닌, 거래량과 캔들을 통해 세력의 흐름을 읽어내는 실전 차트 분석을 알려드립니다."
+              },
+              {
+                icon: <ShieldCheck className="text-emerald-500" size={32} />,
+                title: "소외주/저평가 발굴",
+                desc: "시장에서 소외되어 있지만 실적이 탄탄한 기업들을 미리 발굴하여 안전한 투자를 지향합니다."
+              }
+            ].map((feature, idx) => (
+              <div key={idx} className="bg-[#111824] p-8 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                <div className="mb-6 bg-[#0a0f16] w-16 h-16 rounded-xl flex items-center justify-center border border-white/5">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                <p className="text-slate-400 leading-relaxed text-sm md:text-base">
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. 비디오 섹션 (강화된 UI) */}
+      <section id="videos" className="py-24 border-t border-white/5">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">인기 콘텐츠</h2>
-              <p className="text-slate-400">구독자들이 가장 많이 찾는 튼튼주식의 핵심 분석 영상들입니다.</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">필수 시청 영상 🎬</h2>
+              <p className="text-slate-400">구독자들이 추천하는 튼튼주식의 핵심 분석 강좌입니다.</p>
             </div>
-            <a href={ytLink} target="_blank" rel="noreferrer" className="hidden md:flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
-              채널로 이동하기 <ArrowRight size={18} />
+            <a href={ytLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-red-500 hover:text-red-400 font-bold transition-colors">
+              유튜브에서 더 보기 <ArrowRight size={18} />
             </a>
           </div>
 
@@ -227,30 +286,27 @@ export default function App() {
             {[
               {
                 id: 1,
-                title: "2026년 하반기 주도주 장세, 이 섹터를 주목하라! 🚀",
-                category: "시장 분석",
+                title: "[필독] 2026년 하반기 주도주 장세, 이 섹터를 주목하라! 🚀",
+                category: "하반기 전망",
                 views: "4.2만 회",
                 time: "2일 전",
-                color: "from-blue-500/20 to-indigo-500/20",
-                iconColor: "text-blue-400"
+                image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80",
               },
               {
                 id: 2,
-                title: "초보 개미도 물리지 않는 마법의 차트 보는 법 📈",
+                title: "초보 개미도 절대 물리지 않는 마법의 차트 보는 법 📈",
                 category: "차트 교육",
                 views: "12만 회",
                 time: "1주 전",
-                color: "from-emerald-500/20 to-teal-500/20",
-                iconColor: "text-emerald-400"
+                image: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=800&q=80",
               },
               {
                 id: 3,
-                title: "[긴급점검] 나스닥 급락, 지금이 기회일까 위기일까? 📊",
+                title: "[긴급점검] 나스닥 급락상황, 위기일까 기회일까? 📊",
                 category: "시황 속보",
                 views: "8.5만 회",
                 time: "3주 전",
-                color: "from-rose-500/20 to-orange-500/20",
-                iconColor: "text-rose-400"
+                image: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=800&q=80",
               }
             ].map((video, idx) => (
               <motion.a
@@ -262,18 +318,26 @@ export default function App() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="group block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 transition-all hover:shadow-lg hover:shadow-emerald-500/10 cursor-pointer"
+                className="group block bg-[#111824] border border-white/5 rounded-2xl overflow-hidden hover:border-red-500/50 transition-all hover:shadow-2xl hover:shadow-red-500/10 cursor-pointer"
               >
-                <div className={`aspect-video w-full bg-gradient-to-br ${video.color} relative flex items-center justify-center p-6 text-center`}>
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/10 transition-colors"></div>
-                  <PlayCircle className={`w-16 h-16 ${video.iconColor} opacity-80 group-hover:scale-110 transition-transform relative z-10`} strokeWidth={1.5} />
+                {/* 썸네일 이미지 영역 */}
+                <div className="aspect-video w-full relative overflow-hidden bg-slate-800">
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors z-10"></div>
+                  <img src={video.image} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <div className="w-14 h-14 bg-red-600/90 backdrop-blur-sm rounded-full flex items-center justify-center text-white scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 shadow-xl">
+                      <PlayCircle size={32} strokeWidth={1.5} className="ml-1" />
+                    </div>
+                  </div>
                 </div>
+                {/* 텍스트 영역 */}
                 <div className="p-6">
-                  <div className="text-xs font-bold text-emerald-400 mb-2">{video.category}</div>
-                  <h3 className="text-lg font-bold mb-3 line-clamp-2 text-slate-100 group-hover:text-emerald-300 transition-colors">
+                  <div className="text-xs font-bold text-red-500 mb-3 tracking-widest">{video.category}</div>
+                  <h3 className="text-lg font-bold mb-4 line-clamp-2 text-slate-100 group-hover:text-red-400 transition-colors leading-snug">
                     {video.title}
                   </h3>
-                  <div className="flex items-center text-sm text-slate-500 gap-2">
+                  <div className="flex items-center text-sm text-slate-500 gap-2 font-medium">
+                    <Clock size={14} />
                     <span>조회수 {video.views}</span>
                     <span>•</span>
                     <span>{video.time}</span>
@@ -282,44 +346,95 @@ export default function App() {
               </motion.a>
             ))}
           </div>
-          
-          <div className="mt-8 md:hidden flex justify-center">
-            <a href={ytLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
-              더 많은 영상 보기 <ArrowRight size={18} />
-            </a>
-          </div>
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="py-24 px-6 border-t border-slate-800">
-        <div className="container mx-auto max-w-4xl text-center">
-          <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <TrendingUp className="text-emerald-400" size={32} />
+      {/* 6. 구독자 후기 (Testimonials) */}
+      <section className="py-24 bg-[#0d131c] border-t border-white/5">
+         <div className="container mx-auto px-6 max-w-7xl">
+           <div className="text-center mb-16">
+             <h2 className="text-3xl md:text-5xl font-bold mb-4">함께 성장하는 구독자들</h2>
+             <p className="text-slate-400 text-lg">튼튼주식과 함께 투자 습관을 바꿔나가는 분들의 리얼 후기입니다.</p>
+           </div>
+
+           <div className="grid md:grid-cols-3 gap-6">
+             {[
+               { name: "주린이탈출", text: "상승장 하락장 가리지 않고 멘탈 잡는 법을 배웠습니다. 요즘은 뇌동매매 절대 안해요!", label: "구독 6개월차" },
+               { name: "불기둥가즈아", text: "차트 보는 눈이 완전히 달라졌어요. 알려주신 타점에서 분할매수 하니까 승률이 정말 좋아졌습니다.", label: "구독 1년차" },
+               { name: "직장인투자자", text: "매일 아침 출근길에 시황 브리핑 듣는게 하루 루틴입니다. 핵심만 짚어주셔서 시간이 절약돼요.", label: "구독 3개월차" }
+             ].map((review, i) => (
+               <div key={i} className="bg-[#111824] p-8 rounded-2xl border border-white/5 relative">
+                 <MessageSquareQuote className="absolute top-6 right-6 text-white/5" size={60} />
+                 <div className="flex text-amber-400 mb-4">
+                   {"★★★★★".split("").map((star, j) => <span key={j}>{star}</span>)}
+                 </div>
+                 <p className="text-lg text-slate-300 leading-relaxed mb-6">"{review.text}"</p>
+                 <div className="flex items-center justify-between">
+                   <div className="font-bold text-white">{review.name}</div>
+                   <div className="text-xs text-slate-500 bg-[#0a0f16] px-2 py-1 rounded">{review.label}</div>
+                 </div>
+               </div>
+             ))}
+           </div>
+         </div>
+      </section>
+
+      {/* 7. 마무리 CTA & Footer */}
+      <section className="py-24 px-6 border-t border-white/5 relative overflow-hidden">
+        {/* Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-red-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
+          <div className="w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-8">
+            <Youtube className="text-red-500" size={32} />
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">투자는 감이 아니라 데이터입니다.</h2>
-          <p className="text-xl text-slate-400 mb-10 leading-relaxed">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">투자는 감이 아니라 데이터입니다</h2>
+          <p className="text-xl text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto">
             매일 쏟아지는 수많은 정보 속에서 진짜 가치 있는 인사이트를 찾아냅니다.<br className="hidden md:block"/>
-            튼튼주식과 함께 객관적인 데이터와 날카로운 차트 분석으로 시장을 앞서가세요.
+            튼튼주식과 함께 잃지 않는 투자를 시작하세요.
           </p>
           <a 
             href={ytLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-colors shadow-lg shadow-red-600/20"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-lg transition-transform hover:scale-105 shadow-xl shadow-red-600/20"
           >
             <Youtube size={24} />
-            지금 유튜브 채널 구독하기
+            채널 바로가기
           </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-slate-950 border-t border-slate-900 text-center text-slate-500">
-        <p>© {new Date().getFullYear()} 튼튼주식 (TTStock). All rights reserved.</p>
-        <p className="text-sm mt-2">본 채널의 정보는 투자 참고용이며, 투자 책임은 본인에게 있습니다.</p>
+      <footer className="py-12 bg-[#05080c] border-t border-white/5 text-slate-500 text-sm">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
+            <div className="flex items-center gap-2 font-bold text-slate-300 text-lg">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-black">
+                <img src="/logo.png" alt="튼튼주식 로고" className="w-full h-full object-cover" />
+              </div>
+              튼튼주식
+            </div>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-white transition-colors">이용약관</a>
+              <a href="#" className="hover:text-white transition-colors">개인정보처리방침</a>
+              <a href={ytLink} className="hover:text-white transition-colors">유튜브 채널</a>
+            </div>
+          </div>
+          
+          <div className="bg-white/5 p-6 rounded-xl border border-white/5 text-xs text-slate-500 leading-relaxed mb-8">
+            <h4 className="font-bold text-slate-400 mb-2 flex items-center gap-2">
+              <ShieldCheck size={16}/> 투자 유의사항 (Disclaimer)
+            </h4>
+            본 웹사이트 및 '튼튼주식' 채널에서 제공하는 모든 콘텐츠는 투자 판단을 위한 참고 자료일 뿐이며, 투자 권유를 목적으로 하지 않습니다. 주식 투자는 원금 손실의 위험이 있으며, 모든 투자에 대한 최종 판단과 책임은 투자자 본인에게 있습니다. 과거의 수익률이 미래의 수익을 보장하지 않습니다. 
+          </div>
+
+          <div className="text-center md:text-left flex flex-col md:flex-row justify-between items-center">
+            <p>© {new Date().getFullYear()} 튼튼주식 (TTStock). All rights reserved.</p>
+            <p className="mt-2 md:mt-0">이메일 문의: contact@ttstock.example.com</p>
+          </div>
+        </div>
       </footer>
     </div>
   );
 }
-
